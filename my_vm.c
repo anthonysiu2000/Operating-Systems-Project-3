@@ -8,7 +8,12 @@ void SetPhysicalMem() {
     //Allocate physical memory using mmap or malloc; this is the total size of
     //your memory you are simulating
 
+    //We will simulate a physical memory space of 4MB
+    void* physicalMemory = malloc(MAX_MEMSIZE);
     
+    //We declare a page directory
+    pde_t *pagedirectory = malloc(sizeof(pde_t));
+
     //HINT: Also calculate the number of physical and virtual pages and allocate
     //virtual and physical bitmaps and initialize them
 

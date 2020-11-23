@@ -6,6 +6,9 @@
 //Assume the address space is 32 bits, so the max memory size is 4GB
 //Page size is 4KB
 
+//This means offset bit number is 12, which leaves 20 bits for page number
+//There are 2^20 possible pages
+
 //Add any important includes here which you may need
 
 #define PGSIZE 4096
