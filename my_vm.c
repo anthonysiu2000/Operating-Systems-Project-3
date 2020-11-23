@@ -9,10 +9,24 @@ void SetPhysicalMem() {
     //your memory you are simulating
 
     //We will simulate a physical memory space of 4MB
-    void* physicalMemory = malloc(MAX_MEMSIZE);
-    
-    //We declare a page directory
+    void* physicalMemory[] = malloc(MAX_MEMSIZE);
+
+    //We declare a physical bitmap to correspond to physical memory pages
+    struct bitMap* physicalBitMap[MAX_MEMSIZE / PGSIZE];
+    //Allocating a 1 value to indicate freeness
+    for (int i = 0; i < (MAX_MEMSIZE/PGSIZE); i++) {
+        physicalBitMap[i] = 1;
+    }
+
+    //We declare and allocate page directory
     pde_t *pagedirectory = malloc(sizeof(pde_t));
+
+    //We declare a virtual bitmap to correspond to virtual memory pages
+    struct bitMap *virtualBitMap[MAX_MEMSIZE / PGSIZE];
+    //Allocating a 1 value to indicate freeness
+    for (int i = 0; i < (MAX_MEMSIZE/PGSIZE); i++) {
+        virtualBitMap[i] = 1;
+    }
 
     //HINT: Also calculate the number of physical and virtual pages and allocate
     //virtual and physical bitmaps and initialize them
@@ -30,6 +44,15 @@ pte_t * Translate(pde_t *pgdir, void *va) {
     //2nd-level-page table index using the virtual address.  Using the page
     //directory index and page table index get the physical address
 
+    //masks used to get the indexes and offset necessary to find the physical address
+    unsigned pdeMASK = ((1 << 10) - 1) << 22;
+    unsigned pteMASK = ((1 << 10) - 1) << 12;
+
+    unsigned** vaAddress = &va;
+
+    //indexes of page directory, page table, and index
+    unsigned pdeindex = (pdeMASK & **vaAddress) >> 22;
+    unsigned pteindex = (pteMASK & **vaAddress) >> 12;
 
     //If translation not successfull
     return NULL; 

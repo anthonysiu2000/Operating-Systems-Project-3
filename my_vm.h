@@ -24,6 +24,14 @@ typedef unsigned long pte_t;
 // Represents a page directory entry
 typedef unsigned long pde_t;
 
+// Represents a bit map structure
+struct bitMap {
+    unsigned free : 1
+};
+
+
+
+
 #define TLB_SIZE 120
 
 //Structure to represents TLB
