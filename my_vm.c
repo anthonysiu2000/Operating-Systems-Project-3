@@ -1,8 +1,13 @@
 #include "my_vm.h"
 
+
+
 /*
 Function responsible for allocating and setting your physical memory 
 */
+struct bitMap physicalBitMap[];
+struct bitMap virtualBitMap[];
+
 void SetPhysicalMem() {
 
     //Allocate physical memory using mmap or malloc; this is the total size of
@@ -12,20 +17,20 @@ void SetPhysicalMem() {
     void* physicalMemory[] = malloc(MAX_MEMSIZE);
 
     //We declare a physical bitmap to correspond to physical memory pages
-    struct bitMap* physicalBitMap[MAX_MEMSIZE / PGSIZE];
+    physicalBitMap[MAX_MEMSIZE / PGSIZE];
     //Allocating a 1 value to indicate freeness
     for (int i = 0; i < (MAX_MEMSIZE/PGSIZE); i++) {
-        physicalBitMap[i] = 1;
+        physicalBitMap[i].free = 1;
     }
 
     //We declare and allocate page directory
     pde_t *pagedirectory = malloc(sizeof(pde_t));
 
     //We declare a virtual bitmap to correspond to virtual memory pages
-    struct bitMap *virtualBitMap[MAX_MEMSIZE / PGSIZE];
+    virtualBitMap[MAX_MEMSIZE / PGSIZE];
     //Allocating a 1 value to indicate freeness
     for (int i = 0; i < (MAX_MEMSIZE/PGSIZE); i++) {
-        virtualBitMap[i] = 1;
+        virtualBitMap[i].free = 1;
     }
 
     //HINT: Also calculate the number of physical and virtual pages and allocate
@@ -47,15 +52,26 @@ pte_t * Translate(pde_t *pgdir, void *va) {
     //masks used to get the indexes and offset necessary to find the physical address
     unsigned pdeMASK = ((1 << 10) - 1) << 22;
     unsigned pteMASK = ((1 << 10) - 1) << 12;
+    unsigned offsetMASK = (1 << 12) - 1;
 
-    unsigned** vaAddress = &va;
+    unsigned* vaAddress = va;
 
     //indexes of page directory, page table, and index
-    unsigned pdeindex = (pdeMASK & **vaAddress) >> 22;
-    unsigned pteindex = (pteMASK & **vaAddress) >> 12;
+    unsigned pdeindex = (pdeMASK & *vaAddress) >> 22;
+    unsigned pteindex = (pteMASK & *vaAddress) >> 12;
+    unsigned offsetIndex = offsetMASK & *vaAddress;
 
+
+    
     //If translation not successfull
-    return NULL; 
+    if (virtualBitMap[pdeindex * 1024 + pteindex].free == 0) {
+        return NULL;
+    }
+    
+    //obtains the physical address by adding the page directory index and page table index to the input
+    pte_t out = pgdir[pdeindex][&pteindex] + offsetIndex;
+    return out;
+
 }
 
 

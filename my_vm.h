@@ -26,7 +26,7 @@ typedef unsigned long pde_t;
 
 // Represents a bit map structure
 struct bitMap {
-    unsigned free : 1
+    unsigned free : 1;
 };
 
 
