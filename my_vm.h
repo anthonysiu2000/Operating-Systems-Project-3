@@ -50,6 +50,7 @@ int PageMap(pde_t *pgdir, void *va, void* pa);
 bool check_in_tlb(void *va);
 void put_in_tlb(void *va, void *pa);
 void *myalloc(unsigned int num_bytes);
+void *get_next_avail(int num_pages);
 void myfree(void *va, int size);
 void PutVal(void *va, void *val, int size);
 void GetVal(void *va, void *val, int size);
