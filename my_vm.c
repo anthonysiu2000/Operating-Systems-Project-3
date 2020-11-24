@@ -5,7 +5,7 @@
 /*
 Function responsible for allocating and setting your physical memory 
 */
-void* physicalMemory;
+pde_t *physicalMemory;
 pde_t *pagedirectory;
 struct bitMap physicalBitMap[];
 struct bitMap virtualBitMap[];
@@ -106,7 +106,9 @@ PageMap(pde_t *pgdir, void *va, void *pa)
     }
 
     //sets the value at the index value equal to the physical address
-    pgdir[pdeindex][&pteindex] + offsetIndex = pa;
+    pagedirectory[pdeindex][&pteindex]= pa;
+    //sets the virtual address as filled in
+    virtualBitMap[pdeindex * 1024 + pteindex].free = 0;
     return 0;
 }
 
@@ -115,7 +117,9 @@ PageMap(pde_t *pgdir, void *va, void *pa)
 */
 void *get_next_avail(int num_pages) {
 
+    //loops through the bitmap to find a free page
     for (int i = 0; i < length(virtualBitMap); i++) {
+        //if we find a free page, we return a pointer to its address
         if (virtualBitMap[i].free == 1) {
             unsigned pteindex = i % 1024;
             return &pagedirectory[i / 1024][&pteindex];
@@ -137,6 +141,61 @@ void *myalloc(unsigned int num_bytes) {
    page directory. Next, using get_next_avail(), check if there are free pages. If
    free pages are available, set the bitmaps and map a new page. Note, you will 
    have to mark which physical pages are used. */
+
+    //We first calculate the number of pages we need to allocate. Each page is 4096 bytes
+    int numPages = (num_bytes-1)/4096 + 1;
+
+    //We will create an array of page pointers in order to store free physical memory locations
+    void* physicalPages[] = malloc(numPages * sizeof(void*));
+
+    //We will then go through the physical page bitmap to determine if there are enough pages available
+    int freePageCount = 0;
+    int j = 0;
+    for (int i = 0; i < (MAX_MEMSIZE/PGSIZE); i++) {
+        if (physicalBitMap[i].free == 1) {
+            unsigned pteindex = i % 1024;
+            physicalPages[j] = &physicalMemory[i / 1024][&pteindex];
+            j++;
+            freePageCount++;
+            if (freePageCount == numPages) {
+                break;
+            }
+        }
+    }
+
+    if (freePageCount < numPages) {
+        return NULL;
+    }
+
+    //We will create a pointer to the virtual address of the page that has enough free space
+    void *freePage[] = malloc(numPages * sizeof(void*));
+
+    //We will go through the virtual bitmap to see if there is a contiguous region of 
+    //virtual memory big enough to store numPages amount of pages
+    int start = 0;
+    int freeVPageCount = 0;
+    for (int i = 0; i < (MAX_MEMSIZE/PGSIZE); i++) {
+        if (virtualBitMap[i].free == 1) {
+            start = 1;
+            freeVPageCount++;
+            if (freeVPageCount >= numPages) {
+                unsigned pteindex = i % 1024;
+                freePage[i] = &pagedirectory[i / 1024][&pteindex];
+                break;
+            }
+        } else {
+            if (start == 1) {
+                freeVPageCount = 0;
+            }
+        }
+    }
+
+    //We will now map the virtual addresses to physical addresses in our Page Table
+    for (int i = 0; i < numPages; i++) {
+        PageMap(pagedirectory, freePage[i], physicalPages[i]);
+    }
+
+
 
     return NULL;
 }
