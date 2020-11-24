@@ -5,6 +5,8 @@
 /*
 Function responsible for allocating and setting your physical memory 
 */
+void* physicalMemory;
+pde_t *pagedirectory;
 struct bitMap physicalBitMap[];
 struct bitMap virtualBitMap[];
 
@@ -14,7 +16,7 @@ void SetPhysicalMem() {
     //your memory you are simulating
 
     //We will simulate a physical memory space of 4MB
-    void* physicalMemory[] = malloc(MAX_MEMSIZE);
+    physicalMemory = malloc(MAX_MEMSIZE/PGSIZE);
 
     //We declare a physical bitmap to correspond to physical memory pages
     physicalBitMap[MAX_MEMSIZE / PGSIZE];
@@ -23,8 +25,8 @@ void SetPhysicalMem() {
         physicalBitMap[i].free = 1;
     }
 
-    //We declare and allocate page directory
-    pde_t *pagedirectory = malloc(sizeof(pde_t));
+    //We allocate page directory
+    pagedirectory = malloc(sizeof(pde_t));
 
     //We declare a virtual bitmap to correspond to virtual memory pages
     virtualBitMap[MAX_MEMSIZE / PGSIZE];
@@ -105,9 +107,6 @@ PageMap(pde_t *pgdir, void *va, void *pa)
 
     //sets the value at the index value equal to the physical address
     pgdir[pdeindex][&pteindex] + offsetIndex = pa;
-
-
-
     return 0;
 }
 
@@ -115,6 +114,13 @@ PageMap(pde_t *pgdir, void *va, void *pa)
 /*Function that gets the next available page
 */
 void *get_next_avail(int num_pages) {
+
+    for (int i = 0; i < length(virtualBitMap); i++) {
+        if (virtualBitMap[i].free == 1) {
+            unsigned pteindex = i % 1024;
+            return &pagedirectory[i / 1024][&pteindex];
+        }
+    }
  
     //Use virtual address bitmap to find the next free page
 }
