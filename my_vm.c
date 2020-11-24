@@ -26,7 +26,7 @@ void SetPhysicalMem() {
     }
 
     //We allocate page directory
-    pagedirectory = malloc(sizeof(pde_t));
+    pagedirectory = malloc(MAX_MEMSIZE);
 
     //We declare a virtual bitmap to correspond to virtual memory pages
     virtualBitMap[MAX_MEMSIZE / PGSIZE];
@@ -150,12 +150,10 @@ void *myalloc(unsigned int num_bytes) {
 
     //We will then go through the physical page bitmap to determine if there are enough pages available
     int freePageCount = 0;
-    int j = 0;
     for (int i = 0; i < (MAX_MEMSIZE/PGSIZE); i++) {
         if (physicalBitMap[i].free == 1) {
             unsigned pteindex = i % 1024;
-            physicalPages[j] = &physicalMemory[i / 1024][&pteindex];
-            j++;
+            physicalPages[freePageCount] = &physicalMemory[i / 1024][&pteindex];
             freePageCount++;
             if (freePageCount == numPages) {
                 break;
@@ -177,12 +175,12 @@ void *myalloc(unsigned int num_bytes) {
     for (int i = 0; i < (MAX_MEMSIZE/PGSIZE); i++) {
         if (virtualBitMap[i].free == 1) {
             start = 1;
-            freeVPageCount++;
             if (freeVPageCount >= numPages) {
                 unsigned pteindex = i % 1024;
                 freePage[i] = &pagedirectory[i / 1024][&pteindex];
                 break;
             }
+            freeVPageCount++;
         } else {
             if (start == 1) {
                 freeVPageCount = 0;
