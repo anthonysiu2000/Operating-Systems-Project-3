@@ -60,8 +60,6 @@ pte_t * Translate(pde_t *pgdir, void *va) {
     unsigned pdeindex = (pdeMASK & *vaAddress) >> 22;
     unsigned pteindex = (pteMASK & *vaAddress) >> 12;
     unsigned offsetIndex = offsetMASK & *vaAddress;
-
-
     
     //If translation not successfull
     if (virtualBitMap[pdeindex * 1024 + pteindex].free == 0) {
@@ -84,12 +82,33 @@ virtual address is not present, then a new entry will be added
 int
 PageMap(pde_t *pgdir, void *va, void *pa)
 {
-
     /*HINT: Similar to Translate(), find the page directory (1st level)
     and page table (2nd-level) indices. If no mapping exists, set the
     virtual to physical mapping */
 
-    return -1;
+    //masks used to get the indexes and offset 
+    unsigned pdeMASK = ((1 << 10) - 1) << 22;
+    unsigned pteMASK = ((1 << 10) - 1) << 12;
+    unsigned offsetMASK = (1 << 12) - 1;
+
+    unsigned* vaAddress = va;
+
+    //indexes of page directory, page table, and index
+    unsigned pdeindex = (pdeMASK & *vaAddress) >> 22;
+    unsigned pteindex = (pteMASK & *vaAddress) >> 12;
+    unsigned offsetIndex = offsetMASK & *vaAddress;
+
+    //observes if there is mapping at the current index or not by checking the bit map
+    if (virtualBitMap[pdeindex * 1024 + pteindex].free == 0) {
+        return -1;
+    }
+
+    //sets the value at the index value equal to the physical address
+    pgdir[pdeindex][&pteindex] + offsetIndex = pa;
+
+
+
+    return 0;
 }
 
 
